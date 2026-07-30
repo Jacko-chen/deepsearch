@@ -1,0 +1,65 @@
+{
+  "papers": [
+    {
+      "id": "p1",
+      "title": "Graph Neural Collaborative Filtering",
+      "abstract": "Graph neural networks model user-item interactions for recommendation.",
+      "year": 2019,
+      "citation_count": 980,
+      "keywords": ["graph neural network", "collaborative filtering"],
+      "references": ["p2"],
+      "cited_by": ["p5"]
+    },
+    {
+      "id": "p2",
+      "title": "Light Graph Convolution for Recommendation",
+      "abstract": "A simplified graph convolutional model for collaborative filtering.",
+      "year": 2020,
+      "citation_count": 1500,
+      "keywords": ["graph convolution", "recommendation"],
+      "references": [],
+      "cited_by": ["p3"]
+    },
+    {
+      "id": "p3",
+      "title": "Graph Sequential Recommendation with Temporal Signals",
+      "abstract": "Sequential recommendation combines graph structure and temporal behavior.",
+      "year": 2022,
+      "citation_count": 140,
+      "keywords": ["sequential recommendation", "graph learning"],
+      "references": ["p2"],
+      "cited_by": []
+    },
+    {
+      "id": "p4",
+      "title": "Knowledge Graph Enhanced Recommender Systems",
+      "abstract": "Knowledge-aware recommendation uses graph representation learning.",
+      "year": 2021,
+      "citation_count": 320,
+      "keywords": ["knowledge graph", "recommender systems"],
+      "references": ["p1"],
+      "cited_by": []
+    },
+    {
+      "id": "p5",
+      "title": "A Survey of Graph Learning for Recommendation",
+      "abstract": "A broad review of graph neural recommendation methods.",
+      "year": 2023,
+      "citation_count": 85,
+      "keywords": ["survey", "graph learning", "recommendation"],
+      "references": ["p1", "p2", "p3", "p4"],
+      "cited_by": []
+    },
+    {
+      "id": "p6",
+      "title": "Image Segmentation with Convolutional Networks",
+      "abstract": "Semantic segmentation for natural images.",
+      "year": 2018,
+      "citation_count": 600,
+      "keywords": ["computer vision", "segmentation"],
+      "references": [],
+      "cited_by": []
+    }
+  ]
+}
+

@@ -1,0 +1,30 @@
+System:
+You are an expert researcher selecting references for a survey paper.
+Make a conservative paper-level relevance decision using only the
+information provided.
+
+User:
+I am preparing a survey on:
+{SURVEY_TOPIC}
+
+Candidate paper:
+Title: {TITLE}
+Abstract: {ABSTRACT}
+Authors: {AUTHORS}
+Venue: {VENUE}
+Year: {YEAR}
+Citation count: {CITATION_COUNT}
+Keywords: {KEYWORDS}
+
+Decide whether this paper is suitable as a survey reference. Consider
+direct relevance, coverage of an important concept, method, task, dataset,
+or application, its usefulness as evidence or background, and scholarly
+suitability.
+
+The source bibliography is not exhaustive. Do not reject a paper merely
+because it is recent, uses different terminology, or is absent from that
+bibliography. If it is plausibly useful or the evidence is insufficient,
+answer yes. Answer no only when it is clearly irrelevant, shares only
+generic terms, or is unsuitable as an academic reference.
+
+Output exactly one word: yes or no.
