@@ -1,9 +1,10 @@
 # DeepSearch
 
-[![Survey Topics](https://img.shields.io/badge/Survey%20Topics-3K%2B-1f6feb?style=flat-square)](#dataset-scale)
-[![Trajectories](https://img.shields.io/badge/Trajectories-3K%2B-2da44e?style=flat-square)](#dataset-scale)
-[![Filter Examples](https://img.shields.io/badge/Filter%20Examples-1.20M-8250df?style=flat-square)](#dataset-scale)
-[![Benchmark Topics](https://img.shields.io/badge/Benchmark%20Topics-300-f97316?style=flat-square)](#dataset-scale)
+[![Parsed Surveys](https://img.shields.io/badge/Parsed%20Surveys-11.5K-1f6feb?style=flat-square)](https://huggingface.co/datasets/ShuhaoChen202401/deepsearch-data)
+[![Trajectories](https://img.shields.io/badge/Trajectories-3K%2B-2da44e?style=flat-square)](https://huggingface.co/datasets/ShuhaoChen202401/deepsearch-data/tree/main/trajectories)
+[![Filter Examples](https://img.shields.io/badge/Filter%20Examples-1.20M-8250df?style=flat-square)](https://huggingface.co/datasets/ShuhaoChen202401/deepsearch-data/tree/main/training)
+[![Benchmark Topics](https://img.shields.io/badge/Benchmark%20Topics-300-f97316?style=flat-square)](https://huggingface.co/datasets/ShuhaoChen202401/deepsearch-data/tree/main/benchmark)
+[![Checkpoints](https://img.shields.io/badge/Checkpoints-5-0ea5e9?style=flat-square)](#model-checkpoints)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-f7c948?style=flat-square)](./pyproject.toml)
 
 **What Makes a Good Deep Search? Rethinking Trajectory Construction, Agent
@@ -31,18 +32,48 @@ Research data and model checkpoints are released separately.
 
 ## Dataset Scale
 
-The release is built from **3K+ expert-written survey topics** and their
-constructed retrieval trajectories. It further contains approximately
-**1.20 million topic-paper examples** for paper-filter training. Evaluation
-uses a non-overlapping benchmark of **300 survey topics**. The code repository
-contains only a small synthetic example; the complete research data will be
-distributed through Hugging Face.
+The source pool contains 11,920 parsed expert-written surveys. After quality
+control and cross-domain deduplication, the release contains **11,588
+section-level survey records**, including section-to-reference mappings and
+bibliographic metadata. From this pool, **3,152 retrieval trajectories** are
+released for process supervision, together with approximately **1.20 million
+topic-paper examples** for paper-filter training. Evaluation uses a
+non-overlapping benchmark of **300 survey topics**. The code repository
+contains only a small synthetic example; the complete research data and
+checkpoints are hosted on Hugging Face.
 
 ## Resources
 
 - Code: https://github.com/Jacko-chen/deepsearch
-- Hugging Face dataset:
-- Model checkpoints: **TBA**
+- Dataset: https://huggingface.co/datasets/ShuhaoChen202401/deepsearch-data
+- Default paper filter: https://huggingface.co/ShuhaoChen202401/deepsearch-paper-filter-sft
+- Default retrieval selector: https://huggingface.co/ShuhaoChen202401/deepsearch-retrieval-selector-sft-rl
+
+### Model checkpoints
+
+| Checkpoint | Training strategy | Role |
+|---|---|---|
+| [Paper Filter SFT](https://huggingface.co/ShuhaoChen202401/deepsearch-paper-filter-sft) | SFT | Default paper filter |
+| [Paper Filter RL](https://huggingface.co/ShuhaoChen202401/deepsearch-paper-filter-rl) | RL-only | Filter ablation |
+| [Retrieval Selector SFT](https://huggingface.co/ShuhaoChen202401/deepsearch-retrieval-selector-sft) | SFT | Selector ablation |
+| [Retrieval Selector RL](https://huggingface.co/ShuhaoChen202401/deepsearch-retrieval-selector-rl) | RL-only | Selector ablation |
+| [Retrieval Selector SFT+RL](https://huggingface.co/ShuhaoChen202401/deepsearch-retrieval-selector-sft-rl) | SFT followed by RL | Default retrieval selector |
+
+Download the dataset and the default checkpoint pair with:
+
+```bash
+pip install -U "huggingface_hub[hf_xet]"
+
+hf download ShuhaoChen202401/deepsearch-data \
+  --repo-type dataset \
+  --local-dir data/deepsearch
+
+hf download ShuhaoChen202401/deepsearch-paper-filter-sft \
+  --local-dir checkpoints/paper-filter-sft
+
+hf download ShuhaoChen202401/deepsearch-retrieval-selector-sft-rl \
+  --local-dir checkpoints/retrieval-selector-sft-rl
+```
 
 ## Installation
 
@@ -116,12 +147,10 @@ from deepsearch.models import TransformersActionSelector, TransformersPaperFilte
 
 backend = AMinerBackend()  # reads AMINER_API_KEY
 paper_filter = TransformersPaperFilter(
-    "Qwen/Qwen3-8B",
-    adapter_path="/path/to/filter-adapter",
+    "ShuhaoChen202401/deepsearch-paper-filter-sft",
 )
 selector = TransformersActionSelector(
-    "Qwen/Qwen3-8B",
-    adapter_path="/path/to/selector-adapter",
+    "ShuhaoChen202401/deepsearch-retrieval-selector-sft-rl",
 )
 result = DeepSearchAgent(backend, paper_filter, selector).retrieve(
     "Graph neural networks for recommender systems"
