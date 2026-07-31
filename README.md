@@ -39,10 +39,10 @@ bibliographic metadata. From this pool, **3,152 retrieval trajectories** are
 released for process supervision, together with approximately **1.20 million
 topic-paper examples** for paper-filter training. Evaluation uses a
 non-overlapping benchmark of **300 survey topics**. The code repository
-contains only a small synthetic example; the complete research data and
+contains only a small synthetic example; the released datasets and available
 checkpoints are hosted on Hugging Face.
 
-## Resources
+## 📦 Resources
 
 - Code: https://github.com/Jacko-chen/deepsearch
 - Dataset: https://huggingface.co/datasets/ShuhaoChen202401/deepsearch-data
@@ -59,23 +59,7 @@ checkpoints are hosted on Hugging Face.
 | [Retrieval Selector RL](https://huggingface.co/ShuhaoChen202401/deepsearch-retrieval-selector-rl) | RL-only | Selector ablation |
 | [Retrieval Selector SFT+RL](https://huggingface.co/ShuhaoChen202401/deepsearch-retrieval-selector-sft-rl) | SFT followed by RL | Default retrieval selector |
 
-Download the dataset and the default checkpoint pair with:
-
-```bash
-pip install -U "huggingface_hub[hf_xet]"
-
-hf download ShuhaoChen202401/deepsearch-data \
-  --repo-type dataset \
-  --local-dir data/deepsearch
-
-hf download ShuhaoChen202401/deepsearch-paper-filter-sft \
-  --local-dir checkpoints/paper-filter-sft
-
-hf download ShuhaoChen202401/deepsearch-retrieval-selector-sft-rl \
-  --local-dir checkpoints/retrieval-selector-sft-rl
-```
-
-## Installation
+## ⚙️ Installation
 
 Python 3.10 or newer is required.
 
@@ -95,7 +79,54 @@ pip install -e ".[train]"  # Qwen inference and SFT
 pip install -e ".[dev]"    # development checks
 ```
 
-## Five-minute offline example
+## ⬇️ Downloading released artifacts
+
+Transformers can load a checkpoint directly from its Hugging Face repository
+ID, as shown in the inference example below. No manual model download is
+required in that case; files are stored in the standard Hugging Face cache.
+
+For local or offline use, run the following commands from the repository root
+to download the dataset and the default checkpoint pair into the recommended
+project directories:
+
+```bash
+pip install -U "huggingface_hub[hf_xet]"
+
+hf download ShuhaoChen202401/deepsearch-data \
+  --repo-type dataset \
+  --local-dir data/deepsearch
+
+hf download ShuhaoChen202401/deepsearch-paper-filter-sft \
+  --local-dir checkpoints/paper-filter-sft
+
+hf download ShuhaoChen202401/deepsearch-retrieval-selector-sft-rl \
+  --local-dir checkpoints/retrieval-selector-sft-rl
+```
+
+The resulting layout is:
+
+```text
+deepsearch/
+├── data/
+│   └── deepsearch/
+│       ├── surveys/
+│       ├── trajectories/
+│       ├── training/
+│       ├── benchmark/
+│       └── ablations/
+└── checkpoints/
+    ├── paper-filter-sft/
+    └── retrieval-selector-sft-rl/
+```
+
+Use `training/paper_filter_sft/` or `training/retrieval_selector_sft/` for
+supervised training data, the corresponding `*_rl/` directories for RL data,
+`benchmark/` for evaluation, `trajectories/raw/` for constructed trajectories,
+and `surveys/parsed_section_level/` for parsed survey records. These locations
+are a recommended convention rather than hard-coded paths; pass alternative
+locations explicitly to the relevant command or model constructor.
+
+## 🚀 Five-minute offline example
 
 No API key, external dataset, GPU, or model checkpoint is required:
 
@@ -118,7 +149,7 @@ The example uses deterministic heuristic replacements for the learned filter
 and selector. The retrieval pipeline and file interfaces are the same when
 real checkpoints are supplied.
 
-## Pipeline
+## 🔍 Pipeline
 
 ### Trajectory construction
 
@@ -140,6 +171,8 @@ Survey references and section targets are construction-time supervision.
 
 ### Inference with trained checkpoints
 
+The default checkpoint pair can be loaded directly from Hugging Face:
+
 ```python
 from deepsearch.agent import DeepSearchAgent
 from deepsearch.backends.aminer import AMinerBackend
@@ -157,6 +190,18 @@ result = DeepSearchAgent(backend, paper_filter, selector).retrieve(
 )
 ```
 
+If the checkpoints were downloaded into the recommended local directories,
+replace the two repository IDs with local paths:
+
+```python
+paper_filter = TransformersPaperFilter(
+    "checkpoints/paper-filter-sft",
+)
+selector = TransformersActionSelector(
+    "checkpoints/retrieval-selector-sft-rl",
+)
+```
+
 Set credentials outside source code:
 
 ```bash
@@ -164,9 +209,9 @@ cp .env.example .env
 export AMINER_API_KEY="your-key"
 ```
 
-The AMiner service is external and its response schema or access policy may
-change. `RetrievalBackend` can be implemented for another paper-search
-provider without changing the constructor or agent.
+The [AMiner](https://www.aminer.cn/) service is external and its response
+schema or access policy may change. `RetrievalBackend` can be implemented for
+another paper-search provider without changing the constructor or agent.
 
 ## Preparing SFT data
 
@@ -198,7 +243,7 @@ python scripts/build_selector_data.py \
 Splits are group-based to avoid topic or trajectory leakage. The input and
 output fields are summarized in the Data formats section below.
 
-## Training
+## 🧪 Training
 
 The provided SFT trainer consumes JSONL records containing a `messages`
 conversation. It masks prompt tokens and optimizes only assistant outputs.
@@ -234,7 +279,7 @@ entry point is `src/deepsearch/training/verl_reward.py`. The environment
 should attach final collection reward and trajectory state through
 `extra_info`.
 
-## Evaluation
+## 📊 Evaluation
 
 ```bash
 deepsearch-evaluate \
@@ -265,7 +310,12 @@ examples/           small synthetic runnable inputs
 tests/              offline unit and integration tests
 ```
 
-## Data formats
+## 🗂️ Data formats
+
+The following schemas describe the normalized inputs used by the code. The
+released dataset preserves additional provenance fields documented in its
+Hugging Face Dataset Card. In particular, the raw filter-candidate schema
+describes the expected input to the data builder.
 
 ### Topic
 
@@ -320,18 +370,24 @@ the remaining out-of-reference candidates are excluded.
 
 ### Constructed trajectory
 
-Each trajectory contains `topic_id`, `topic`, a list of `steps`, and
-`final_collection`. Each step records its state, selected `action`,
-`tool_input`, candidates, accepted papers, accumulated collection, reward,
-and both branch results. Actions are `search`, `citation`, and `stop`.
+Each raw trajectory is stored as an ordered JSON list. The first two entries
+contain topic-level statistics and target-reference IDs. The remaining
+entries record the initialization search and subsequent compare-then-update
+rounds, including retrieval results, the accumulated paper collection,
+unmatched papers, and matched-reference information. These trajectories are
+subsequently converted into selector state-action supervision.
 
-### SFT record
+### SFT records
 
-Both builders output JSONL records containing a `messages` conversation.
-Filter targets are `yes` or `no`; selector targets follow the strict
-`search`, `citation`, or `END` format defined in `prompts/selector.txt`.
+Released SFT data are stored in Parquet format. Paper-filter records contain a
+`messages` conversation whose assistant target is `yes` or `no`.
+Retrieval-selector records contain `messages`, `enable_thinking`, and
+`extra_info`; the assistant target is `search` with keywords, `citation`, or
+`END`. The `extra_info` field records the source topic, trajectory step, and
+other provenance needed to trace the example back to its constructed
+trajectory.
 
-## Reproducibility and security
+## 🔒 Reproducibility and security
 
 Large datasets, generated outputs, checkpoints, experiment logs, and secrets
 are ignored by Git. Do not commit API keys. The code imported from research
@@ -345,10 +401,12 @@ Run all offline checks with:
 make check
 ```
 
-## Citation
+## 📚 Citation
 
 Citation metadata will be updated after publication. See `CITATION.cff`.
 
-## License
+## ⚖️ License
 
-MIT License. See [LICENSE](LICENSE).
+The source code is released under the [MIT License](LICENSE). Dataset and
+checkpoint licenses are specified separately in their corresponding Hugging
+Face repository cards.
